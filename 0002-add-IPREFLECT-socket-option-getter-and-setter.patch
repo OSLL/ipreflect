@@ -1,0 +1,65 @@
+From 245f324999ea0e146db2a57988f044a09e6be3d6 Mon Sep 17 00:00:00 2001
+From: mike krinkin <krinkin.m.u@gmail.com>
+Date: Fri, 3 Jan 2014 18:47:46 +0400
+Subject: [PATCH 2/3] add IPREFLECT socket option getter and setter
+
+---
+ include/net/sock.h                |  1 +
+ include/uapi/asm-generic/socket.h |  2 ++
+ net/core/sock.c                   | 10 ++++++++++
+ 3 files changed, 13 insertions(+)
+
+diff --git a/include/net/sock.h b/include/net/sock.h
+index 808cbc2..ed9be89 100644
+--- a/include/net/sock.h
++++ b/include/net/sock.h
+@@ -681,6 +681,7 @@ enum sock_flags {
+ 		     */
+ 	SOCK_FILTER_LOCKED, /* Filter cannot be changed anymore */
+ 	SOCK_SELECT_ERR_QUEUE, /* Wake select on error queue */
++	SOCK_IPREFLECT,
+ };
+ 
+ static inline void sock_copy_flags(struct sock *nsk, struct sock *osk)
+diff --git a/include/uapi/asm-generic/socket.h b/include/uapi/asm-generic/socket.h
+index f04b69b..9ed3de8 100644
+--- a/include/uapi/asm-generic/socket.h
++++ b/include/uapi/asm-generic/socket.h
+@@ -78,4 +78,6 @@
+ 
+ #define SO_BUSY_POLL		46
+ 
++#define SO_IPREFLECT		47
++
+ #endif /* __ASM_GENERIC_SOCKET_H */
+diff --git a/net/core/sock.c b/net/core/sock.c
+index 0b39e7a..dc950d3 100644
+--- a/net/core/sock.c
++++ b/net/core/sock.c
+@@ -914,6 +914,11 @@ set_rcvbuf:
+ 		}
+ 		break;
+ #endif
++	case SO_IPREFLECT:
++		printk(KERN_NOTICE "set ipreflect mode to %d\n", valbool);
++		sock_valbool_flag(sk, SOCK_IPREFLECT, valbool);
++		break;
++
+ 	default:
+ 		ret = -ENOPROTOOPT;
+ 		break;
+@@ -1177,6 +1182,11 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
+ 		break;
+ #endif
+ 
++	case SO_IPREFLECT:
++		printk(KERN_NOTICE "get ipreflect mode (%d)\n", sock_flag(sk, SOCK_IPREFLECT));
++		v.val = sock_flag(sk, SOCK_IPREFLECT);
++		break;
++
+ 	default:
+ 		return -ENOPROTOOPT;
+ 	}
+-- 
+1.8.3.2
+

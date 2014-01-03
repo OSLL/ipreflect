@@ -1,0 +1,87 @@
+From 3acf9e348f79ebc7e4ffa1a6beea473c9e1d18d8 Mon Sep 17 00:00:00 2001
+From: mike krinkin <krinkin.m.u@gmail.com>
+Date: Fri, 3 Jan 2014 19:35:50 +0400
+Subject: [PATCH] track bound interface
+
+---
+ include/net/inet_hashtables.h | 16 ++++++++++------
+ net/ipv4/tcp_ipv4.c           | 12 ++++++++++++
+ 2 files changed, 22 insertions(+), 6 deletions(-)
+
+diff --git a/include/net/inet_hashtables.h b/include/net/inet_hashtables.h
+index ef83d9e..b9d4499 100644
+--- a/include/net/inet_hashtables.h
++++ b/include/net/inet_hashtables.h
+@@ -306,13 +306,15 @@ static inline struct sock *inet_lookup_listener(struct net *net,
+ #define INET_MATCH(__sk, __net, __cookie, __saddr, __daddr, __ports, __dif)	\
+ 	((inet_sk(__sk)->inet_portpair == (__ports))		&&	\
+ 	 (inet_sk(__sk)->inet_addrpair == (__cookie))		&&	\
+-	 (!(__sk)->sk_bound_dev_if	||				\
++	 (sock_flag(__sk, SOCK_IPREFLECT) ||				\
++	  !(__sk)->sk_bound_dev_if	||				\
+ 	   ((__sk)->sk_bound_dev_if == (__dif))) 		&& 	\
+ 	 net_eq(sock_net(__sk), (__net)))
+ #define INET_TW_MATCH(__sk, __net, __cookie, __saddr, __daddr, __ports, __dif)\
+ 	((inet_twsk(__sk)->tw_portpair == (__ports))	&&		\
+ 	 (inet_twsk(__sk)->tw_addrpair == (__cookie))	&&		\
+-	 (!(__sk)->sk_bound_dev_if	||				\
++	 (sock_flag(__sk, SOCK_IPREFLECT) ||				\
++	  !(__sk)->sk_bound_dev_if	||				\
+ 	   ((__sk)->sk_bound_dev_if == (__dif)))	&&		\
+ 	 net_eq(sock_net(__sk), (__net)))
+ #else /* 32-bit arch */
+@@ -321,15 +323,17 @@ static inline struct sock *inet_lookup_listener(struct net *net,
+ 	((inet_sk(__sk)->inet_portpair == (__ports))	&&		\
+ 	 (inet_sk(__sk)->inet_daddr	== (__saddr))	&&		\
+ 	 (inet_sk(__sk)->inet_rcv_saddr	== (__daddr))	&&		\
+-	 (!(__sk)->sk_bound_dev_if	||				\
+-	   ((__sk)->sk_bound_dev_if == (__dif))) 	&&		\
++	 (sock_flag(__sk, SOCK_IPREFLECT) ||				\
++	  !(__sk)->sk_bound_dev_if	||				\
++	   ((__sk)->sk_bound_dev_if == (__dif)))	&&		\
+ 	 net_eq(sock_net(__sk), (__net)))
+ #define INET_TW_MATCH(__sk, __net, __cookie, __saddr, __daddr, __ports, __dif) \
+ 	((inet_twsk(__sk)->tw_portpair == (__ports))	&&		\
+ 	 (inet_twsk(__sk)->tw_daddr	== (__saddr))	&&		\
+ 	 (inet_twsk(__sk)->tw_rcv_saddr	== (__daddr))	&&		\
+-	 (!(__sk)->sk_bound_dev_if	||				\
+-	   ((__sk)->sk_bound_dev_if == (__dif))) 	&&		\
++	 (sock_flag(__sk, SOCK_IPREFLECT) ||				\
++	  !(__sk)->sk_bound_dev_if	||				\
++	   ((__sk)->sk_bound_dev_if == (__dif)))	&&		\
+ 	 net_eq(sock_net(__sk), (__net)))
+ #endif /* 64-bit arch */
+ 
+diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
+index 5031f68..f1ff977 100644
+--- a/net/ipv4/tcp_ipv4.c
++++ b/net/ipv4/tcp_ipv4.c
+@@ -1928,6 +1928,17 @@ bool tcp_prequeue(struct sock *sk, struct sk_buff *skb)
+ }
+ EXPORT_SYMBOL(tcp_prequeue);
+ 
++static inline void ipreflect_bound_dev_if(struct sock *sk, struct sk_buff *skb)
++{
++	const int ingress = inet_iif(skb);
++
++	if (sock_flag(sk, SOCK_IPREFLECT) && (sk->sk_bound_dev_if != ingress)) {
++		sk->sk_bound_dev_if = ingress;
++		printk(KERN_NOTICE "ipreflect interface changed to %s (%d)\n",
++				skb->dev->name, ingress);
++	}
++}
++
+ /*
+  *	From tcp_input.c
+  */
+@@ -1993,6 +2004,7 @@ process:
+ 	if (sk_filter(sk, skb))
+ 		goto discard_and_relse;
+ 
++	ipreflect_bound_dev_if(sk, skb);
+ 	sk_mark_napi_id(sk, skb);
+ 	skb->dev = NULL;
+ 
+-- 
+1.8.3.2
+
