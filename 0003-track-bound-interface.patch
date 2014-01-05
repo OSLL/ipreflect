@@ -1,7 +1,7 @@
-From 3acf9e348f79ebc7e4ffa1a6beea473c9e1d18d8 Mon Sep 17 00:00:00 2001
+From 99f2fe04a0849b5412a4a78e0fe987e49c736ed5 Mon Sep 17 00:00:00 2001
 From: mike krinkin <krinkin.m.u@gmail.com>
-Date: Fri, 3 Jan 2014 19:35:50 +0400
-Subject: [PATCH] track bound interface
+Date: Sun, 5 Jan 2014 12:06:49 +0400
+Subject: [PATCH 3/3] track bound interface
 
 ---
  include/net/inet_hashtables.h | 16 ++++++++++------

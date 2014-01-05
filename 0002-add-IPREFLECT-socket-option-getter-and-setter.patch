@@ -1,13 +1,13 @@
-From 245f324999ea0e146db2a57988f044a09e6be3d6 Mon Sep 17 00:00:00 2001
+From 0807432b22af3147b461c8800214a33c136f4c77 Mon Sep 17 00:00:00 2001
 From: mike krinkin <krinkin.m.u@gmail.com>
-Date: Fri, 3 Jan 2014 18:47:46 +0400
+Date: Sun, 5 Jan 2014 12:05:57 +0400
 Subject: [PATCH 2/3] add IPREFLECT socket option getter and setter
 
 ---
  include/net/sock.h                |  1 +
  include/uapi/asm-generic/socket.h |  2 ++
- net/core/sock.c                   | 10 ++++++++++
- 3 files changed, 13 insertions(+)
+ net/core/sock.c                   | 12 ++++++++++++
+ 3 files changed, 15 insertions(+)
 
 diff --git a/include/net/sock.h b/include/net/sock.h
 index 808cbc2..ed9be89 100644
@@ -33,22 +33,24 @@ index f04b69b..9ed3de8 100644
 +
  #endif /* __ASM_GENERIC_SOCKET_H */
 diff --git a/net/core/sock.c b/net/core/sock.c
-index 0b39e7a..dc950d3 100644
+index 0b39e7a..8dfa5ff 100644
 --- a/net/core/sock.c
 +++ b/net/core/sock.c
-@@ -914,6 +914,11 @@ set_rcvbuf:
+@@ -914,6 +914,13 @@ set_rcvbuf:
  		}
  		break;
  #endif
 +	case SO_IPREFLECT:
 +		printk(KERN_NOTICE "set ipreflect mode to %d\n", valbool);
++		if (!valbool && sock_flag(sk, SOCK_IPREFLECT))
++			sk->sk_bound_dev_if = 0;
 +		sock_valbool_flag(sk, SOCK_IPREFLECT, valbool);
 +		break;
 +
  	default:
  		ret = -ENOPROTOOPT;
  		break;
-@@ -1177,6 +1182,11 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
+@@ -1177,6 +1184,11 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
  		break;
  #endif
  
