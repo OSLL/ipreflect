@@ -1,7 +1,7 @@
 From 756db32a231f46e186f661e838951266accdf31e Mon Sep 17 00:00:00 2001
 From: mike krinkin <krinkin.m.u@gmail.com>
 Date: Wed, 22 Jan 2014 02:19:15 +0400
-Subject: [PATCH 3/3] track bound interface
+Subject: [PATCH 2/2] track bound interface
 
 ---
  include/net/inet_hashtables.h | 16 ++++++++++------

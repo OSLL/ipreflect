@@ -1,7 +1,7 @@
 From 56a1e3556027c325d4aa0611e5b008c1e9fa9854 Mon Sep 17 00:00:00 2001
 From: mike krinkin <krinkin.m.u@gmail.com>
 Date: Tue, 21 Jan 2014 23:29:00 +0400
-Subject: [PATCH 2/3] add IPREFLECT socket option getter and setter
+Subject: [PATCH 1/2] add IPREFLECT socket option getter and setter
 
 ---
  include/net/sock.h                |  1 +
